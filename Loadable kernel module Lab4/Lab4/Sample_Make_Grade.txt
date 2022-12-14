@@ -1,0 +1,74 @@
+The following is a sample output from a good 'make grade' run. 
+
+I'm showing the request enter a sudo password.  If you call ‘make’ multiple times in the same terminal, you should only be prompted the first time, or after the previous sudo becomes invalid (e.g., times out).
+
+The rmmod error message at the beginning is okay.  It just means no module named ‘myname’ was already loaded when the rmmod was called.  I'm just calling rmmod at the beginning to be sure things are cleared out when grading multiple students.  It also makes it more likely that you’ll see output from your most recent code changes, not something previously loaded.
+
+There are 4 lines of DMESG at the end of the file because I'm tail'ing the last 4 lines after looking for LAB4 in the output.  Since I had run 'make' multiple times, there were multiple pairs of output to be found.  Check the timestamps in your output and make sure that the ‘last two lines’ always make an appropriate set of messages for Loading and Removing.  If you’ve clear out the DMESG space, or run after you first reboot, you’ll only see 2 lines, not 4, since there won’t be multiple pairs of output yet.  Run again, and you should then see 4.  
+
+
+
+========================================
+
+
+sudo rmmod myname  ||:
+[sudo] password for keith: 
+rmmod: ERROR: Module myname is not currently loaded
+
+
+make clean
+make[1]: Entering directory '/media/sf_06-SP22/2431_OS/Labs/Lab4_Teacher_View'
+make -C /lib/modules/5.11.0-41-generic/build M=/media/sf_06-SP22/2431_OS/Labs/Lab4_Teacher_View clean
+make[2]: Entering directory '/usr/src/linux-headers-5.11.0-41-generic'
+  CLEAN   /media/sf_06-SP22/2431_OS/Labs/Lab4_Teacher_View/Module.symvers
+make[2]: Leaving directory '/usr/src/linux-headers-5.11.0-41-generic'
+make[1]: Leaving directory '/media/sf_06-SP22/2431_OS/Labs/Lab4_Teacher_View'
+
+
+make all
+make[1]: Entering directory '/media/sf_06-SP22/2431_OS/Labs/Lab4_Teacher_View'
+make -C /lib/modules/5.11.0-41-generic/build M=/media/sf_06-SP22/2431_OS/Labs/Lab4_Teacher_View modules
+make[2]: Entering directory '/usr/src/linux-headers-5.11.0-41-generic'
+  CC [M]  /media/sf_06-SP22/2431_OS/Labs/Lab4_Teacher_View/myname.o
+  MODPOST /media/sf_06-SP22/2431_OS/Labs/Lab4_Teacher_View/Module.symvers
+  CC [M]  /media/sf_06-SP22/2431_OS/Labs/Lab4_Teacher_View/myname.mod.o
+  LD [M]  /media/sf_06-SP22/2431_OS/Labs/Lab4_Teacher_View/myname.ko
+  BTF [M] /media/sf_06-SP22/2431_OS/Labs/Lab4_Teacher_View/myname.ko
+Skipping BTF generation for /media/sf_06-SP22/2431_OS/Labs/Lab4_Teacher_View/myname.ko due to unavailability of vmlinux
+make[2]: Leaving directory '/usr/src/linux-headers-5.11.0-41-generic'
+make[1]: Leaving directory '/media/sf_06-SP22/2431_OS/Labs/Lab4_Teacher_View'
+
+
+sudo insmod myname.ko
+
+
+LSMOD: Should find myname in the list.
+lsmod | grep myname
+myname                 16384  0
+
+
+Reading /proc/myname 5 times
+LAB4:  myname[1] = Keith
+LAB4:  myname[2] = Shafer
+LAB4:  myname[3] = Keith
+LAB4:  myname[4] = Shafer
+LAB4:  myname[5] = Keith
+
+
+sudo rmmod myname
+
+
+LSMOD: Should not find myname in the list now.
+lsmod | grep myname ||:
+
+
+Try to read /proc/myname.  Should fail now.
+cat: /proc/myname: No such file or directory
+
+
+DMESG: Should see student as last pair of 'Loading' and 'Removing' messages.
+dmesg -T | grep -i LAB4 | tail -n 4
+[Wed Dec  8 13:46:43 2021] LAB4:  Loading  module by Keith Shafer
+[Wed Dec  8 13:46:43 2021] LAB4:  Removing module by Keith Shafer
+[Wed Dec  8 13:51:09 2021] LAB4:  Loading  module by Keith Shafer
+[Wed Dec  8 13:51:09 2021] LAB4:  Removing module by Keith Shafer
